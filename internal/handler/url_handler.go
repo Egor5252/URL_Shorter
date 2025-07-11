@@ -50,6 +50,25 @@ func CreateShortUrl(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "короткая ссылка создана: " + newShortUrl.ShortCode})
 }
 
+func CreateShortUrlGet(c *gin.Context) {
+	html := `
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<title>Форма с полем ввода</title>
+		</head>
+		<body>
+			<h1>Введите ссылку и нажмите кнопку</h1>
+			<form action="/createshorturl" method="POST">
+				<input type="text" name="url" placeholder="Введите ссылку" required>
+				<button type="submit">Отправить</button>
+			</form>
+		</body>
+		</html>
+	`
+	c.Data(200, "text/html; charset=utf-8", []byte(html))
+}
+
 func GoToShortUrl(c *gin.Context) {
 	shortUrl := c.Param("shorturl")
 

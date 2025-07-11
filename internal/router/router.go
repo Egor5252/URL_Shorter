@@ -13,5 +13,6 @@ func InitRouters(r *gin.Engine) {
 	r.GET("/account", handler.Account)
 
 	r.POST("/createshorturl", handler.CreateShortUrl)
+	r.GET("/", handler.CreateShortUrlGet)
 	r.GET("/go/:shorturl", handler.GoToShortUrl)
 }
