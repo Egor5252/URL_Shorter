@@ -53,16 +53,37 @@ func CreateShortUrl(c *gin.Context) {
 func CreateShortUrlGet(c *gin.Context) {
 	html := `
 		<!DOCTYPE html>
-		<html>
+		<html lang="ru">
 		<head>
-			<title>Форма с полем ввода</title>
+			<meta charset="UTF-8">
+			<title>Форма</title>
+			<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+			<style>
+				body {
+					background: #f8f9fa;
+				}
+				.centered-box {
+					max-width: 400px;
+					margin: 100px auto;
+					padding: 30px;
+					background: white;
+					border-radius: 12px;
+					box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+				}
+			</style>
 		</head>
 		<body>
-			<h1>Введите ссылку и нажмите кнопку</h1>
-			<form action="/createshorturl" method="POST">
-				<input type="text" name="url" placeholder="Введите ссылку" required>
-				<button type="submit">Отправить</button>
-			</form>
+			<div class="centered-box">
+				<h4 class="mb-4 text-center">Введите текст</h4>
+				<form action="/createshorturl" method="POST">
+					<div class="mb-3">
+						<input type="text" class="form-control" name="url" placeholder="Введите что-нибудь..." required>
+					</div>
+					<div class="d-grid">
+						<button type="submit" class="btn btn-primary">Отправить</button>
+					</div>
+				</form>
+			</div>
 		</body>
 		</html>
 	`
