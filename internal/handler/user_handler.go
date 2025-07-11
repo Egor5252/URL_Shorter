@@ -5,6 +5,7 @@ import (
 	"time"
 	"urlShorter/internal/auth"
 	"urlShorter/internal/db"
+	"urlShorter/internal/domain/url"
 	"urlShorter/internal/domain/user"
 	"urlShorter/pkg/utils"
 
@@ -109,11 +110,17 @@ func Logout(c *gin.Context) {
 }
 
 func Account(c *gin.Context) {
-	incomingUser, err := auth.Who(c)
+	_, err := auth.Who(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": incomingUser})
+	urls, err := db.ReadAll[url.Url](url.UrlDB)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": urls})
 }

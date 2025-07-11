@@ -50,6 +50,19 @@ func ReadAllByValue[T any](db *gorm.DB, field string, value any) ([]T, error) {
 	return entities, nil
 }
 
+func ReadAll[T any](db *gorm.DB) ([]T, error) {
+	if db == nil {
+		return nil, fmt.Errorf("БД не инициализирована")
+	}
+
+	var entities []T
+	if err := db.Find(&entities).Error; err != nil {
+		return nil, err
+	}
+
+	return entities, nil
+}
+
 func Update[T any](db *gorm.DB, entity *T, field string, val any) error {
 	return db.Model(entity).Update(field, val).Error
 }
