@@ -26,9 +26,10 @@ func CreateShortUrl(c *gin.Context) {
 		req.Url = "https://" + req.Url
 	}
 
-	shortUrl, err := utils.Hash(req.Url)
+	shortUrl, err := utils.RandomWord()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка хеша:" + err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	newShortUrl := &url.Url{
