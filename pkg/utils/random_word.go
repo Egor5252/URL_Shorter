@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strings"
 )
 
 func RandomWord() (string, error) {
@@ -20,7 +21,7 @@ func RandomWord() (string, error) {
 	current := 1
 	for scanner.Scan() {
 		if current == num {
-			return scanner.Text(), nil
+			return strings.ToLower(scanner.Text()), nil
 		}
 		current++
 	}
