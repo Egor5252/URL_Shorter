@@ -17,11 +17,15 @@ const secureCookie = false
 
 func Register(c *gin.Context) {
 	var req struct {
-		Name     string `json:"name" form:"name"`
+		User     string `json:"user" form:"user"`
 		Password string `json:"password" form:"password"`
 	}
 	if err := c.Bind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if req.User == "" || req.Password == "" {
+		c.JSON(http.StatusConflict, gin.H{"status": "Неверное заполнение полей"})
 		return
 	}
 
@@ -31,7 +35,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	val, err := db.ReadFirstByValue[user.User](user.UsersDB, "name", req.Name)
+	val, err := db.ReadFirstByValue[user.User](user.UsersDB, "name", req.User)
 	if err != nil && err.Error() != "record not found" {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка поиска пользователя: " + err.Error()})
 		return
@@ -42,7 +46,7 @@ func Register(c *gin.Context) {
 	}
 
 	newUser := &user.User{
-		Name:     req.Name,
+		Name:     req.User,
 		PassHash: string(passHash),
 		Model: gorm.Model{
 			CreatedAt: time.Now(),
@@ -57,7 +61,7 @@ func Register(c *gin.Context) {
 
 	tokenString, err := auth.MakeJWT(newUser.ID, newUser.Name)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "Ошибка создания JWT: " + err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "Ошибка создания JWT: " + err.Error() + " . Аккаунт создан, повторите попытку входа"})
 		return
 	}
 
@@ -68,7 +72,7 @@ func Register(c *gin.Context) {
 
 func Login(c *gin.Context) {
 	var incomingUser struct {
-		Name     string `json:"name" form:"name"`
+		User     string `json:"user" form:"user"`
 		Password string `json:"password" form:"password"`
 	}
 
@@ -77,13 +81,13 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	findedUser, err := db.ReadFirstByValue[user.User](user.UsersDB, "name", incomingUser.Name)
+	findedUser, err := db.ReadFirstByValue[user.User](user.UsersDB, "name", incomingUser.User)
 	if err != nil {
 		if err.Error() == "record not found" {
 			c.JSON(http.StatusUnauthorized, gin.H{"status": "Ошибка логина или пароля"})
 			return
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"status": "Ошибка входа"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка входа"})
 			return
 		}
 	}
@@ -110,13 +114,14 @@ func Logout(c *gin.Context) {
 }
 
 func Account(c *gin.Context) {
-	_, err := auth.Who(c)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": err.Error()})
+	claimsVal, ok := c.Get("claims")
+	if !ok {
+		c.JSON(500, gin.H{"error": "claims not found"})
 		return
 	}
+	claims := claimsVal.(*auth.Claims)
 
-	urls, err := db.ReadAll[url.Url](url.UrlDB)
+	urls, err := db.ReadAllByValue[url.Url](url.UrlDB, "user_id", claims.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

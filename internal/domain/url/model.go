@@ -7,5 +7,4 @@ type Url struct {
 	UserID      uint
 	OriginalURL string
 	ShortCode   string `gorm:"unique"`
-	Count       uint32
 }

@@ -6,6 +6,7 @@ import (
 	"time"
 	"urlShorter/internal/auth"
 	"urlShorter/internal/db"
+	transitionstatistics "urlShorter/internal/domain/transitionStatistics"
 	"urlShorter/internal/domain/url"
 	"urlShorter/pkg/utils"
 
@@ -19,7 +20,6 @@ func CreateShortUrl(c *gin.Context) {
 		c.JSON(500, gin.H{"error": "claims not found"})
 		return
 	}
-
 	claims := claimsVal.(*auth.Claims)
 
 	var req struct {
@@ -45,7 +45,6 @@ func CreateShortUrl(c *gin.Context) {
 		UserID:      claims.ID,
 		OriginalURL: req.Url,
 		ShortCode:   shortUrl,
-		Count:       0,
 		Model: gorm.Model{
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
@@ -69,7 +68,19 @@ func GoToShortUrl(c *gin.Context) {
 		return
 	}
 
-	db.Update(url.UrlDB, findedUrl, "count", findedUrl.Count+1)
+	newVal := &transitionstatistics.Transitionstatistics{
+		UserIP:   c.ClientIP(),
+		ShortUrl: shortUrl,
+		Model: gorm.Model{
+			CreatedAt: time.Now(),
+		},
+	}
+
+	err = db.Create(transitionstatistics.TSDB, newVal)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	c.Redirect(http.StatusFound, findedUrl.OriginalURL)
 }
