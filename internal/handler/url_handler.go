@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
+	"urlShorter/internal/auth"
 	"urlShorter/internal/db"
 	"urlShorter/internal/domain/url"
 	"urlShorter/pkg/utils"
@@ -14,6 +14,14 @@ import (
 )
 
 func CreateShortUrl(c *gin.Context) {
+	claimsVal, ok := c.Get("claims")
+	if !ok {
+		c.JSON(500, gin.H{"error": "claims not found"})
+		return
+	}
+
+	claims := claimsVal.(*auth.Claims)
+
 	var req struct {
 		Url string `json:"url" form:"url"`
 	}
@@ -34,8 +42,9 @@ func CreateShortUrl(c *gin.Context) {
 	}
 
 	newShortUrl := &url.Url{
+		UserID:      claims.ID,
 		OriginalURL: req.Url,
-		ShortCode:   string(shortUrl),
+		ShortCode:   shortUrl,
 		Count:       0,
 		Model: gorm.Model{
 			CreatedAt: time.Now(),
@@ -48,82 +57,7 @@ func CreateShortUrl(c *gin.Context) {
 		return
 	}
 
-	html := `
-		<!DOCTYPE html>
-		<html lang="ru">
-		<head>
-			<meta charset="UTF-8">
-			<title>Короткосыл</title>
-			<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-			<style>
-				body {
-					background: #f8f9fa;
-				}
-				.centered-box {
-					max-width: 400px;
-					margin: 100px auto;
-					padding: 30px;
-					background: white;
-					border-radius: 12px;
-					box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-				}
-			</style>
-		</head>
-		<body>
-			<div class="centered-box">
-				<h4 class="mb-4 text-center">Короткоссылка</h4>
-				<form action="/createshorturl" method="POST">
-					<div class="mb-3">
-						<input type="text" class="form-control" name="url" value=` + fmt.Sprintf("192.168.1.182:8080/go/%s", newShortUrl.ShortCode) + ` placeholder="Введите ссылку..." required>
-					</div>
-				</form>
-			</div>
-		</body>
-		</html>
-	`
-
-	// c.JSON(http.StatusOK, gin.H{"status": "короткая ссылка создана: " + newShortUrl.ShortCode})
-	c.Data(200, "text/html; charset=utf-8", []byte(html))
-}
-
-func CreateShortUrlGet(c *gin.Context) {
-	html := `
-		<!DOCTYPE html>
-		<html lang="ru">
-		<head>
-			<meta charset="UTF-8">
-			<title>Короткосыл</title>
-			<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-			<style>
-				body {
-					background: #f8f9fa;
-				}
-				.centered-box {
-					max-width: 400px;
-					margin: 100px auto;
-					padding: 30px;
-					background: white;
-					border-radius: 12px;
-					box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-				}
-			</style>
-		</head>
-		<body>
-			<div class="centered-box">
-				<h4 class="mb-4 text-center">Введите ссылку</h4>
-				<form action="/createshorturl" method="POST">
-					<div class="mb-3">
-						<input type="text" class="form-control" name="url" placeholder="Введите ссылку..." required>
-					</div>
-					<div class="d-grid">
-						<button type="submit" class="btn btn-primary">Короткоссыльнуть</button>
-					</div>
-				</form>
-			</div>
-		</body>
-		</html>
-	`
-	c.Data(200, "text/html; charset=utf-8", []byte(html))
+	c.JSON(http.StatusOK, gin.H{"message": "10.10.13.40:8080/go/" + newShortUrl.ShortCode})
 }
 
 func GoToShortUrl(c *gin.Context) {
