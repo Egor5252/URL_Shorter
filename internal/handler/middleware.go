@@ -7,14 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware(c *gin.Context) {
-	claims, err := auth.Who(c)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": err.Error()})
-		c.Abort()
-		return
-	}
+func AuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		claims, err := auth.Who(c)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
 
-	c.Set("claims", claims)
-	c.Next()
+		c.Set("claims", claims)
+		c.Next()
+	}
 }
