@@ -11,13 +11,12 @@ export default function Login() {
     setError(null);
 
     try {
-      const res = await axios.post('/login', {
+      await axios.post('/login', {
         user,
         password,
       });
-      const token = res.data.token;
       // localStorage.setItem('token', token);
-      alert(token);
+      alert('Вы вошли!');
       // перенаправление можно сделать через react-router-dom
     } catch (err) {
       setError('Неверный логин или пароль');

@@ -11,13 +11,12 @@ export default function Register() {
     setError(null);
 
     try {
-      const res = await axios.post('/register', {
+      await axios.post('/register', {
         user,
         password,
       });
-      const token = res.data.token;
       // localStorage.setItem('token', token);
-      alert(token);
+      alert('Вы Зарегистрировались!');
       // перенаправление можно сделать через react-router-dom
     } catch (err) {
       setError('Логин занят');
