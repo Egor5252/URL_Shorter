@@ -25,7 +25,7 @@ func Register(c *gin.Context) {
 		return
 	}
 	if req.User == "" || req.Password == "" {
-		c.JSON(http.StatusConflict, gin.H{"status": "Неверное заполнение полей"})
+		c.JSON(http.StatusConflict, gin.H{"error": "Неверное заполнение полей"})
 		return
 	}
 
@@ -41,7 +41,7 @@ func Register(c *gin.Context) {
 		return
 	}
 	if val != nil {
-		c.JSON(http.StatusConflict, gin.H{"status": "Логин занят"})
+		c.JSON(http.StatusConflict, gin.H{"error": "Логин занят"})
 		return
 	}
 
@@ -55,19 +55,19 @@ func Register(c *gin.Context) {
 	}
 
 	if err := db.Create(user.UsersDB, newUser); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	tokenString, err := auth.MakeJWT(newUser.ID, newUser.Name)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "Ошибка создания JWT: " + err.Error() + " . Аккаунт создан, повторите попытку входа"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка создания JWT: " + err.Error() + " . Аккаунт создан, повторите попытку входа"})
 		return
 	}
 
 	c.SetCookie("token", tokenString, 60*60, "/", "", secureCookie, true)
 
-	c.JSON(http.StatusCreated, gin.H{"status": gin.H{"info": "Пользователь зарегистрирован, вход выполнен", "user": newUser.Name}})
+	c.JSON(http.StatusCreated, gin.H{"message": gin.H{"info": "Пользователь зарегистрирован, вход выполнен", "user": newUser.Name}})
 }
 
 func Login(c *gin.Context) {
@@ -84,7 +84,7 @@ func Login(c *gin.Context) {
 	findedUser, err := db.ReadFirstByValue[user.User](user.UsersDB, "name", incomingUser.User)
 	if err != nil {
 		if err.Error() == "record not found" {
-			c.JSON(http.StatusUnauthorized, gin.H{"status": "Ошибка логина или пароля"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Ошибка логина или пароля"})
 			return
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка входа"})
@@ -93,19 +93,19 @@ func Login(c *gin.Context) {
 	}
 
 	if err := utils.Compare(findedUser.PassHash, incomingUser.Password); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"status": "Ошибка логина или пароля"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Ошибка логина или пароля"})
 		return
 	}
 
 	tokenString, err := auth.MakeJWT(findedUser.ID, findedUser.Name)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "Ошибка создания JWT: " + err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка создания JWT: " + err.Error()})
 		return
 	}
 
 	c.SetCookie("token", tokenString, 60*60, "/", "", secureCookie, true)
 
-	c.JSON(http.StatusOK, gin.H{"status": gin.H{"info": "Вход выполнен", "user": findedUser.Name}})
+	c.JSON(http.StatusOK, gin.H{"message": gin.H{"info": "Вход выполнен", "user": findedUser.Name}})
 }
 
 func Logout(c *gin.Context) {

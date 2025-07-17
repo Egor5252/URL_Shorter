@@ -52,11 +52,14 @@ func CreateShortUrl(c *gin.Context) {
 	}
 
 	if err := db.Create(url.UrlDB, newShortUrl); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "10.10.13.40:8080/go/" + newShortUrl.ShortCode})
+	c.JSON(
+		http.StatusOK,
+		gin.H{"message": "10.10.13.40:8080/go/" + newShortUrl.ShortCode},
+	)
 }
 
 func GoToShortUrl(c *gin.Context) {

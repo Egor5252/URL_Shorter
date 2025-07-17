@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 
-export default function Login() {
+export default function Register() {
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -11,7 +11,7 @@ export default function Login() {
     setError(null);
 
     try {
-      const res = await axios.post('/login', {
+      const res = await axios.post('/register', {
         user,
         password,
       });
@@ -20,14 +20,14 @@ export default function Login() {
       alert(token);
       // перенаправление можно сделать через react-router-dom
     } catch (err) {
-      setError('Неверный логин или пароль');
+      setError('Логин занят');
     }
   };
 
   return (
     <div className="login-container">
       <form onSubmit={handleSubmit} className="login-form">
-        <h1 className="form-group">Вход</h1>
+        <h1 className="form-group">Регистрация</h1>
 
         <div className="form-group">
           <input
@@ -49,7 +49,7 @@ export default function Login() {
           />
         </div>
 
-        <button type="submit" className="bg-blue-500 text-white p-2 rounded">Войти</button>
+        <button type="submit" className="bg-blue-500 text-white p-2 rounded">Зарегистрироваться</button>
         {error && <div className="text-red-500">{error}</div>}
       </form>
     </div>
