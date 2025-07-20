@@ -1,7 +1,7 @@
 package url
 
 import (
-	"urlShorter/internal/db"
+	"url_shorter_new/internal/db"
 
 	"gorm.io/gorm"
 )

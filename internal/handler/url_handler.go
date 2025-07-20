@@ -1,33 +1,37 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
-	"urlShorter/internal/auth"
-	"urlShorter/internal/db"
-	transitionstatistics "urlShorter/internal/domain/transitionStatistics"
-	"urlShorter/internal/domain/url"
-	"urlShorter/pkg/utils"
+	"url_shorter_new/internal/auth"
+	"url_shorter_new/internal/db"
+	"url_shorter_new/internal/domain/url"
+	"url_shorter_new/internal/domain/visits"
+	"url_shorter_new/utils"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 func CreateShortUrl(c *gin.Context) {
-	claimsVal, ok := c.Get("claims")
-	if !ok {
-		c.JSON(500, gin.H{"error": "claims not found"})
+	claims, err := auth.GetClaims(c)
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
 		return
 	}
-	claims := claimsVal.(*auth.Claims)
 
 	var req struct {
-		Url string `json:"url" form:"url"`
+		Url       string `json:"url" form:"url"`
+		ShortCode string `json:"short_code" form:"short_code"`
 	}
 
 	if err := c.Bind(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondError(c, http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
 		return
 	}
 
@@ -35,31 +39,40 @@ func CreateShortUrl(c *gin.Context) {
 		req.Url = "https://" + req.Url
 	}
 
-	shortUrl, err := utils.RandomWord()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+	if req.ShortCode == "" {
+		word, err := utils.RandomWord()
+		if err != nil {
+			utils.RespondError(c, http.StatusInternalServerError, gin.H{
+				"message": "Ошибка получения случайного слова: " + err.Error(),
+			})
+			return
+		}
+
+		req.ShortCode = fmt.Sprintf("%s%d", word, time.Now().Unix())
 	}
 
 	newShortUrl := &url.Url{
 		UserID:      claims.ID,
 		OriginalURL: req.Url,
-		ShortCode:   shortUrl,
-		Model: gorm.Model{
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		},
+		ShortCode:   req.ShortCode,
 	}
 
 	if err := db.Create(url.UrlDB, newShortUrl); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		if err.Error() == "constraint failed: UNIQUE constraint failed: urls.short_code (2067)" {
+			utils.RespondError(c, http.StatusConflict, gin.H{
+				"message": "Ссылка уже занята",
+			})
+		} else {
+			utils.RespondError(c, http.StatusInternalServerError, gin.H{
+				"message": "Ошибка добавления ссылки в БД: " + err.Error(),
+			})
+		}
 		return
 	}
 
-	c.JSON(
-		http.StatusOK,
-		gin.H{"message": "10.10.13.40:8080/go/" + newShortUrl.ShortCode},
-	)
+	utils.RespondOK(c, gin.H{
+		"message": fmt.Sprintf("localhost:8080/go/%s", newShortUrl.ShortCode),
+	})
 }
 
 func GoToShortUrl(c *gin.Context) {
@@ -67,21 +80,28 @@ func GoToShortUrl(c *gin.Context) {
 
 	findedUrl, err := db.ReadFirstByValue[url.Url](url.UrlDB, "short_code", shortUrl)
 	if err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{"status": err.Error()})
+		if err.Error() == "record not found" {
+			utils.RespondError(c, http.StatusBadGateway, gin.H{
+				"message": "Несуществующая ссылка",
+			})
+		} else {
+			utils.RespondError(c, http.StatusInternalServerError, gin.H{
+				"message": fmt.Sprintf("Ошибка поиска в БД ссылок: %s", err.Error()),
+			})
+		}
 		return
 	}
 
-	newVal := &transitionstatistics.Transitionstatistics{
-		UserIP:   c.ClientIP(),
-		ShortUrl: shortUrl,
-		Model: gorm.Model{
-			CreatedAt: time.Now(),
-		},
+	newVisit := &visits.Visits{
+		ShortUrlID: findedUrl.ID,
+		UserIP:     c.ClientIP(),
 	}
 
-	err = db.Create(transitionstatistics.TSDB, newVal)
+	err = db.Create(visits.VisitsDB, newVisit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.RespondError(c, http.StatusInternalServerError, gin.H{
+			"message": fmt.Sprintf("Ошибка создания в БД визитов: %s", err.Error()),
+		})
 		return
 	}
 

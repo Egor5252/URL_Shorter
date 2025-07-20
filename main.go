@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	transitionstatistics "urlShorter/internal/domain/transitionStatistics"
-	"urlShorter/internal/domain/url"
-	"urlShorter/internal/domain/user"
-	"urlShorter/internal/router"
+	"url_shorter_new/internal/domain/url"
+	"url_shorter_new/internal/domain/user"
+	"url_shorter_new/internal/domain/visits"
+	"url_shorter_new/internal/router"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,7 +13,7 @@ import (
 func main() {
 	user.InitDB()
 	url.InitDB()
-	transitionstatistics.InitDB()
+	visits.InitDB()
 
 	r := gin.Default()
 	router.InitRouters(r)

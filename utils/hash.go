@@ -9,7 +9,7 @@ import (
 func Hash(pass string) ([]byte, error) {
 	passHash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка хеширования пароля")
+		return nil, fmt.Errorf("ошибка хеширования")
 	}
 
 	return passHash, nil

@@ -15,11 +15,14 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-var jwtKey = []byte("jdd839jd73hksjfn332kfjng5ddu325jr")
+// Время жизни куки в cекундах
+const CookieLiveTime = 60 * 60
+
+var jwtKey = []byte("jdd839jd73hksjfn332kfjng5ddu325jr322")
 
 func MakeJWT(id uint, name string) (string, error) {
 	now := time.Now()
-	expirationTime := now.Add(1 * time.Hour)
+	expirationTime := now.Add(CookieLiveTime * time.Second)
 
 	claims := &Claims{
 		ID:       id,
@@ -29,7 +32,7 @@ func MakeJWT(id uint, name string) (string, error) {
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
 			Subject:   fmt.Sprintf("%d", id),
-			Issuer:    "your-app-name",
+			Issuer:    "korotkosill",
 		},
 	}
 
@@ -44,8 +47,19 @@ func MakeJWT(id uint, name string) (string, error) {
 
 func Who(c *gin.Context) (*Claims, error) {
 	tokenStr, err := c.Cookie("token")
-	if err != nil {
-		return nil, fmt.Errorf("вход не выполнен")
+	if err != nil || tokenStr == "" {
+		// Если нет токена в cookie, ищем в Authorization Header
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			return nil, fmt.Errorf("вход не выполнен, токен не найден")
+		}
+
+		const prefix = "Bearer "
+		if len(authHeader) <= len(prefix) || authHeader[:len(prefix)] != prefix {
+			return nil, fmt.Errorf("некорректный формат Authorization header")
+		}
+
+		tokenStr = authHeader[len(prefix):]
 	}
 
 	claims := &Claims{}
@@ -62,4 +76,13 @@ func Who(c *gin.Context) (*Claims, error) {
 
 	return claims, nil
 
+}
+
+func GetClaims(c *gin.Context) (*Claims, error) {
+	claimsVal, ok := c.Get("claims")
+	if !ok {
+		return nil, fmt.Errorf("структура Claims не найдена")
+	}
+
+	return claimsVal.(*Claims), nil
 }

@@ -9,7 +9,7 @@ import (
 )
 
 func RandomWord() (string, error) {
-	file, err := os.Open("pkg\\utils\\words.txt")
+	file, err := os.Open("utils/words.txt")
 	if err != nil {
 		return "", err
 	}
