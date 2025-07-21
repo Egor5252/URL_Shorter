@@ -45,6 +45,24 @@ func ReadFirstByValue[T any](db *gorm.DB, field string, value any) (*T, error) {
 	return &entity, nil
 }
 
+func ReadOneByValues[T any](db *gorm.DB, conditions map[string]any) (*T, error) {
+	if db == nil {
+		return nil, fmt.Errorf("БД не инициализирована")
+	}
+
+	var entity T
+	query := db
+	for field, value := range conditions {
+		query = query.Where(fmt.Sprintf("%s = ?", field), value)
+	}
+
+	if err := query.First(&entity).Error; err != nil {
+		return nil, err
+	}
+
+	return &entity, nil
+}
+
 func ReadAllByValue[T any](db *gorm.DB, field string, value any) ([]T, error) {
 	if db == nil {
 		return nil, fmt.Errorf("БД не инициализирована")

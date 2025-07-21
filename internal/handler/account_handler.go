@@ -43,14 +43,6 @@ func UrlStatistics(c *gin.Context) {
 		return
 	}
 
-	urls, err := db.ReadAllByValue[url.Url](url.UrlDB, "user_id", claims.ID)
-	if err != nil {
-		utils.RespondError(c, http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
-		})
-		return
-	}
-
 	getID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		utils.RespondError(c, http.StatusInternalServerError, gin.H{
@@ -58,19 +50,20 @@ func UrlStatistics(c *gin.Context) {
 		})
 		return
 	}
-	sucssec := false
-	for _, url := range urls {
-		if uint(getID) == url.ID {
-			sucssec = true
-		}
-	}
-	if !sucssec {
+
+	// Проверка принадлежности ссылки пользователю
+	_, err = db.ReadOneByValues[url.Url](url.UrlDB, map[string]any{
+		"id":      getID,
+		"user_id": claims.ID,
+	})
+	if err != nil {
 		utils.RespondError(c, http.StatusBadRequest, gin.H{
 			"message": "Неизвестная ссылка",
 		})
 		return
 	}
 
+	// Получение статистики переходов
 	visits, err := db.ReadAllByValue[visits.Visits](visits.VisitsDB, "short_url_id", getID)
 	if err != nil {
 		utils.RespondError(c, http.StatusInternalServerError, gin.H{
