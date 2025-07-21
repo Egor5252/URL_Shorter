@@ -8,6 +8,10 @@ import (
 
 // CRUD
 func Create[T any](db *gorm.DB, entity *T) error {
+	if db == nil {
+		return fmt.Errorf("БД не инициализирована")
+	}
+
 	if err := db.Create(entity).Error; err != nil {
 		return err
 	}
@@ -16,6 +20,10 @@ func Create[T any](db *gorm.DB, entity *T) error {
 }
 
 func ReadByID[T any](db *gorm.DB, id uint) (*T, error) {
+	if db == nil {
+		return nil, fmt.Errorf("БД не инициализирована")
+	}
+
 	var entity T
 	if err := db.First(&entity, id).Error; err != nil {
 		return nil, err
@@ -64,9 +72,17 @@ func ReadAll[T any](db *gorm.DB) ([]T, error) {
 }
 
 func Update[T any](db *gorm.DB, entity *T, field string, val any) error {
+	if db == nil {
+		return fmt.Errorf("БД не инициализирована")
+	}
+
 	return db.Model(entity).Update(field, val).Error
 }
 
 func Delete[T any](db *gorm.DB, entity *T) error {
+	if db == nil {
+		return fmt.Errorf("БД не инициализирована")
+	}
+
 	return db.Delete(entity).Error
 }
