@@ -13,7 +13,7 @@ func InitRouters(r *gin.Engine) {
 	r.POST("/logout", handler.Logout)
 
 	r.POST("/createshorturl", auth.AuthMiddleware(), handler.CreateShortUrl)
-	r.POST("/go/:shorturl", handler.GoToShortUrl)
-	r.POST("/account", auth.AuthMiddleware(), handler.Account)
-	r.POST("/account/:id", auth.AuthMiddleware(), handler.UrlStatistics)
+	r.GET("/go/:shorturl", handler.GoToShortUrl)
+	r.GET("/account", auth.AuthMiddleware(), handler.Account)
+	r.GET("/account/:id", auth.AuthMiddleware(), handler.UrlStatistics)
 }
