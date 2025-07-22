@@ -76,3 +76,17 @@ func UrlStatistics(c *gin.Context) {
 		"message": visits,
 	})
 }
+
+func WhoAmI(c *gin.Context) {
+	claims, err := auth.GetClaims(c)
+	if err != nil {
+		utils.RespondError(c, http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
+	utils.RespondOK(c, gin.H{
+		"message": claims.Username,
+	})
+}

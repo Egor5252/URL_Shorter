@@ -8,10 +8,10 @@ import (
 )
 
 func InitRouters(r *gin.Engine) {
-	r.Static("assets", "web-app/dist/assets")
+	// r.Static("assets", "web-app/dist/assets")
 	// r.StaticFile("vite.svg", "web-app/dist/vite.svg")
-	r.LoadHTMLFiles("web-app/dist/index.html")
-	r.GET("/", handler.RootHandler)
+	// r.LoadHTMLFiles("web-app/dist/index.html")
+	// r.GET("/", handler.RootHandler)
 
 	r.POST("/register", handler.Register)
 	r.POST("/login", handler.Login)
@@ -21,4 +21,5 @@ func InitRouters(r *gin.Engine) {
 	r.GET("/go/:shorturl", handler.GoToShortUrl)
 	r.GET("/account", auth.AuthMiddleware(), handler.Account)
 	r.GET("/account/:id", auth.AuthMiddleware(), handler.UrlStatistics)
+	r.GET("/whoami", auth.AuthMiddleware(), handler.WhoAmI)
 }

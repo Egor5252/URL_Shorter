@@ -7,6 +7,8 @@ import (
 	"url_shorter_new/internal/domain/visits"
 	"url_shorter_new/internal/router"
 
+	"github.com/gin-contrib/cors"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,6 +18,12 @@ func main() {
 	visits.InitDB()
 
 	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders:     []string{"Content-Type"},
+		AllowCredentials: true, // ВАЖНО
+	}))
 	router.InitRouters(r)
 
 	if err := r.Run(":8080"); err != nil {
