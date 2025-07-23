@@ -5,6 +5,7 @@ import Home from './Home';
 import Register from './Register';
 import Login from './Login';
 import Logout from './Logout';
+import Account from './Account';
 
 // Компоненты страниц
 
@@ -18,6 +19,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />
+          <Route path="/account" element={<Account />} />
         </Routes>
       </main>
     </Router>

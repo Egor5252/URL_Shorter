@@ -51,7 +51,7 @@ function Header() {
       <nav className="nav">
         {username ? (
           <>
-            <span>{username}</span>
+            <Link to="/account"><span>{username}</span></Link>
             <Link to="/logout">Выйти</Link>
           </>
         ) : (
