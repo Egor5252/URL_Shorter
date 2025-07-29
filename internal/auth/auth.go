@@ -20,7 +20,6 @@ const access_tokenCookieLiveTime = 60 * 30
 const secureCookie = false
 
 var access_tokenjwtKey = []byte("jdd839jd73hksjfn332kfjng5ddu325jr322")
-var refresh_tokenjwtKey = []byte("gydi475fyise74y6bmv8e4mhch4hifmchjewi4g8")
 
 func MakeJWT(c *gin.Context, id uint, name string) error {
 	now := time.Now()
