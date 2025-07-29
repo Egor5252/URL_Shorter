@@ -8,10 +8,11 @@ import (
 )
 
 func InitRouters(r *gin.Engine) {
-	// r.Static("assets", "web-app/dist/assets")
-	// r.StaticFile("vite.svg", "web-app/dist/vite.svg")
-	// r.LoadHTMLFiles("web-app/dist/index.html")
-	// r.GET("/", handler.RootHandler)
+	r.Static("assets", "web-app/dist/assets")
+	r.StaticFile("vite.svg", "web-app/dist/vite.svg")
+	r.LoadHTMLFiles("web-app/dist/index.html")
+	r.GET("/", handler.RootHandler)
+	r.NoRoute(handler.NoPage)
 
 	r.POST("/register", handler.Register)
 	r.POST("/login", handler.Login)
