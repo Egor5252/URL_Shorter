@@ -63,7 +63,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	_, err = auth.MakeJWT(c, newUser.ID, newUser.Username)
+	err = auth.MakeJWT(c, newUser.ID, newUser.Username)
 	if err != nil {
 		utils.RespondError(c, http.StatusInternalServerError, gin.H{
 			"message": "Ошибка создания JWT: " + err.Error() + ". Аккаунт создан, повторите попытку входа",
@@ -107,7 +107,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	_, err = auth.MakeJWT(c, findedUser.ID, findedUser.Username)
+	err = auth.MakeJWT(c, findedUser.ID, findedUser.Username)
 	if err != nil {
 		utils.RespondError(c, http.StatusInternalServerError, gin.H{
 			"message": "Ошибка создания JWT: " + err.Error(),

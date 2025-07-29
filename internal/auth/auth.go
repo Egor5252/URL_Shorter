@@ -21,7 +21,7 @@ const secureCookie = false
 
 var jwtKey = []byte("jdd839jd73hksjfn332kfjng5ddu325jr322")
 
-func MakeJWT(c *gin.Context, id uint, name string) (string, error) {
+func MakeJWT(c *gin.Context, id uint, name string) error {
 	now := time.Now()
 	expirationTime := now.Add(CookieLiveTime * time.Second)
 
@@ -40,29 +40,18 @@ func MakeJWT(c *gin.Context, id uint, name string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(jwtKey)
 	if err != nil {
-		return "", fmt.Errorf("невозможно создать JWT токен: %w", err)
+		return fmt.Errorf("невозможно создать JWT токен: %w", err)
 	}
 
 	c.SetCookie("token", tokenString, CookieLiveTime, "/", "", secureCookie, true)
 
-	return tokenString, nil
+	return nil
 }
 
 func Who(c *gin.Context) (*Claims, error) {
 	tokenStr, err := c.Cookie("token")
 	if err != nil || tokenStr == "" {
-		// Если нет токена в cookie, ищем в Authorization Header
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			return nil, fmt.Errorf("вход не выполнен, токен не найден")
-		}
-
-		const prefix = "Bearer "
-		if len(authHeader) <= len(prefix) || authHeader[:len(prefix)] != prefix {
-			return nil, fmt.Errorf("некорректный формат Authorization header")
-		}
-
-		tokenStr = authHeader[len(prefix):]
+		return nil, fmt.Errorf("нет токена")
 	}
 
 	claims := &Claims{}
