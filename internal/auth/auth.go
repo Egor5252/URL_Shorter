@@ -19,7 +19,7 @@ type Claims struct {
 const CookieLiveTime = 60 * 60
 const secureCookie = false
 
-var jwtKey = []byte("jdd839jd73hksjfn332kfjng5ddu325jr322")
+var accessJwtKey = []byte("jdd839jd73hksjfn332kfjng5ddu325jr322")
 
 func MakeJWT(c *gin.Context, id uint, name string) error {
 	now := time.Now()
@@ -38,7 +38,7 @@ func MakeJWT(c *gin.Context, id uint, name string) error {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
+	tokenString, err := token.SignedString(accessJwtKey)
 	if err != nil {
 		return fmt.Errorf("невозможно создать JWT токен: %w", err)
 	}
@@ -59,7 +59,7 @@ func Who(c *gin.Context) (*Claims, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("неожиданный метод подписи: %v", token.Header["alg"])
 		}
-		return jwtKey, nil
+		return accessJwtKey, nil
 	})
 
 	if err != nil || !token.Valid {
