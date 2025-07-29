@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"url_shorter_new/internal/domain/login"
 	"url_shorter_new/internal/domain/url"
 	"url_shorter_new/internal/domain/user"
 	"url_shorter_new/internal/domain/visits"
@@ -16,6 +17,7 @@ func main() {
 	user.InitDB()
 	url.InitDB()
 	visits.InitDB()
+	login.InitDB()
 
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{

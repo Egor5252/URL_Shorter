@@ -16,14 +16,15 @@ type Claims struct {
 }
 
 // Время жизни куки в cекундах
-const CookieLiveTime = 60 * 60
+const access_tokenCookieLiveTime = 60 * 30
 const secureCookie = false
 
-var jwtKey = []byte("jdd839jd73hksjfn332kfjng5ddu325jr322")
+var access_tokenjwtKey = []byte("jdd839jd73hksjfn332kfjng5ddu325jr322")
+var refresh_tokenjwtKey = []byte("gydi475fyise74y6bmv8e4mhch4hifmchjewi4g8")
 
-func MakeJWT(c *gin.Context, id uint, name string) (string, error) {
+func MakeJWT(c *gin.Context, id uint, name string) error {
 	now := time.Now()
-	expirationTime := now.Add(CookieLiveTime * time.Second)
+	expirationTime := now.Add(access_tokenCookieLiveTime * time.Second)
 
 	claims := &Claims{
 		ID:       id,
@@ -37,32 +38,32 @@ func MakeJWT(c *gin.Context, id uint, name string) (string, error) {
 		},
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
+	access_token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	access_tokenString, err := access_token.SignedString(access_tokenjwtKey)
 	if err != nil {
-		return "", fmt.Errorf("невозможно создать JWT токен: %w", err)
+		return fmt.Errorf("невозможно создать JWT токен: %w", err)
 	}
 
-	c.SetCookie("token", tokenString, CookieLiveTime, "/", "", secureCookie, true)
+	c.SetCookie("access_token", access_tokenString, access_tokenCookieLiveTime, "/", "", secureCookie, true)
 
-	return tokenString, nil
+	return nil
 }
 
 func Who(c *gin.Context) (*Claims, error) {
-	tokenStr, err := c.Cookie("token")
-	if err != nil || tokenStr == "" {
+	access_tokenStr, err := c.Cookie("access_token")
+	if err != nil || access_tokenStr == "" {
 		return nil, fmt.Errorf("вход не выполнен")
 	}
 
 	claims := &Claims{}
-	token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (any, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("неожиданный метод подписи: %v", token.Header["alg"])
+	access_token, err := jwt.ParseWithClaims(access_tokenStr, claims, func(access_token *jwt.Token) (any, error) {
+		if _, ok := access_token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("неожиданный метод подписи: %v", access_token.Header["alg"])
 		}
-		return jwtKey, nil
+		return access_tokenjwtKey, nil
 	})
 
-	if err != nil || !token.Valid {
+	if err != nil || !access_token.Valid {
 		return nil, fmt.Errorf("недействительный или просроченный токен")
 	}
 
@@ -85,5 +86,5 @@ func GetClaims(c *gin.Context) (*Claims, error) {
 }
 
 func ResetCookie(c *gin.Context) {
-	c.SetCookie("token", "", -1, "/", "", secureCookie, true)
+	c.SetCookie("access_token", "", -1, "/", "", secureCookie, true)
 }
