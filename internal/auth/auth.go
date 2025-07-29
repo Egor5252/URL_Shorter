@@ -51,18 +51,7 @@ func MakeJWT(c *gin.Context, id uint, name string) (string, error) {
 func Who(c *gin.Context) (*Claims, error) {
 	tokenStr, err := c.Cookie("token")
 	if err != nil || tokenStr == "" {
-		// Если нет токена в cookie, ищем в Authorization Header
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			return nil, fmt.Errorf("вход не выполнен, токен не найден")
-		}
-
-		const prefix = "Bearer "
-		if len(authHeader) <= len(prefix) || authHeader[:len(prefix)] != prefix {
-			return nil, fmt.Errorf("некорректный формат Authorization header")
-		}
-
-		tokenStr = authHeader[len(prefix):]
+		return nil, fmt.Errorf("вход не выполнен")
 	}
 
 	claims := &Claims{}
