@@ -17,10 +17,11 @@ type Claims struct {
 
 // Время жизни куки в cекундах
 const CookieLiveTime = 60 * 60
+const secureCookie = false
 
 var jwtKey = []byte("jdd839jd73hksjfn332kfjng5ddu325jr322")
 
-func MakeJWT(id uint, name string) (string, error) {
+func MakeJWT(c *gin.Context, id uint, name string) (string, error) {
 	now := time.Now()
 	expirationTime := now.Add(CookieLiveTime * time.Second)
 
@@ -41,6 +42,8 @@ func MakeJWT(id uint, name string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("невозможно создать JWT токен: %w", err)
 	}
+
+	c.SetCookie("token", tokenString, CookieLiveTime, "/", "", secureCookie, true)
 
 	return tokenString, nil
 }
@@ -85,4 +88,8 @@ func GetClaims(c *gin.Context) (*Claims, error) {
 	}
 
 	return claimsVal.(*Claims), nil
+}
+
+func ResetCookie(c *gin.Context) {
+	c.SetCookie("token", "", -1, "/", "", secureCookie, true)
 }

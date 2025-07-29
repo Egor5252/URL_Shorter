@@ -10,8 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const secureCookie = false
-
 var req struct {
 	Username string `json:"username" form:"username"`
 	Password string `json:"password" form:"password"`
@@ -65,15 +63,13 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	tokenString, err := auth.MakeJWT(newUser.ID, newUser.Username)
+	_, err = auth.MakeJWT(c, newUser.ID, newUser.Username)
 	if err != nil {
 		utils.RespondError(c, http.StatusInternalServerError, gin.H{
 			"message": "Ошибка создания JWT: " + err.Error() + ". Аккаунт создан, повторите попытку входа",
 		})
 		return
 	}
-
-	c.SetCookie("token", tokenString, auth.CookieLiveTime, "/", "", secureCookie, true)
 
 	utils.RespondOK(c, gin.H{
 		"message":  "Пользователь зарегистрирован, вход выполнен",
@@ -111,15 +107,13 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	tokenString, err := auth.MakeJWT(findedUser.ID, findedUser.Username)
+	_, err = auth.MakeJWT(c, findedUser.ID, findedUser.Username)
 	if err != nil {
 		utils.RespondError(c, http.StatusInternalServerError, gin.H{
 			"message": "Ошибка создания JWT: " + err.Error(),
 		})
 		return
 	}
-
-	c.SetCookie("token", tokenString, auth.CookieLiveTime, "/", "", secureCookie, true)
 
 	utils.RespondOK(c, gin.H{
 		"message":  "Вход выполнен",
@@ -128,7 +122,7 @@ func Login(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-	c.SetCookie("token", "", -1, "/", "", secureCookie, true)
+	auth.ResetCookie(c)
 	utils.RespondOK(c, gin.H{
 		"message": "Вы вышли из аккаунта",
 	})
